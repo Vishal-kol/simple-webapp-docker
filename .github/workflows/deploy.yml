@@ -23,6 +23,15 @@ jobs:
       - name:  Push docker image
         run:  docker push ${{ secrets.DOCKER_USERNAME }}/my-app:latest
       
-      - name:  Deploy to server
-        run:  |
-          ssh azureuser@172.160.226.3 "docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && docker run -d -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-app:latest"
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+         mkdir -p ~/.ssh
+         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+         ssh -o StrictHostKeyChecking=no azureuser@172.160.226.3 \
+           "docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && \
+            docker stop my-app || true && \
+            docker rm my-app || true && \
+            docker run -d --name my-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-app:latest"
