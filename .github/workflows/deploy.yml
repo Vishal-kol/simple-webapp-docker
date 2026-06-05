@@ -11,6 +11,15 @@ jobs:
       - name:   Checkout code
         uses:  actions/checkout@v2
 
+      - name: Caching
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+          key: ${{ runner.os }}-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-cache-
+
       - name:  Build docker image
         run:  docker build -t ${{ secrets.DOCKER_USERNAME }}/my-app:latest . 
       
@@ -27,11 +36,11 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-         mkdir -p ~/.ssh
-         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-         chmod 600 ~/.ssh/id_rsa
-         ssh -o StrictHostKeyChecking=no azureuser@172.160.226.3 \
-           "sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && \
-            sudo docker stop my-app || true && \
-            sudo docker rm my-app || true && \
-            sudo docker run -d --name my-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-app:latest"
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no azureuser@172.160.226.3 \
+            "sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-app:latest && \
+             sudo docker stop my-app || true && \
+             sudo docker rm my-app || true && \
+             sudo docker run -d --name my-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-app:latest"
