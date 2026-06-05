@@ -26,6 +26,12 @@ jobs:
           docker build \
           --cache-from=${{ secrets.DOCKER_USERNAME }}/my-app:cache \
           -t ${{ secrets.DOCKER_USERNAME }}/my-app:latest .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+        image-ref: ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+
  
       
       - name:   Login to Docker Hub
